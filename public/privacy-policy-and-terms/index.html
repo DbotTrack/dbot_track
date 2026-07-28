@@ -7,15 +7,15 @@
 <meta name="description" content="Dbot Track Privacy Policy and Terms & Conditions" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
     --bg: #ffffff;
-    --fg: #16181d;
-    --muted: #5b6069;
-    --line: #e4e6ea;
-    --accent: #16181d;
-    --card: #f7f7f8;
+    --fg: #1a1d21;
+    --muted: #6b7078;
+    --line: #e6e7ea;
+    --accent: #e07b2d;
+    --card: #fafafa;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -23,82 +23,69 @@
     margin: 0;
     background: var(--bg);
     color: var(--fg);
-    font-family: 'DM Mono', ui-monospace, Menlo, monospace;
-    font-weight: 300;
-    line-height: 1.65;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
     font-size: 15.5px;
   }
-  a { color: var(--fg); }
-  h1, h2, h3 { font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+  a { color: var(--accent); }
+  h1, h2, h3, p, li { overflow-wrap: break-word; word-break: break-word; }
+  h1, h2, h3 { font-family: inherit; font-weight: 700; letter-spacing: -0.01em; color: var(--fg); }
 
   .topbar {
     position: sticky;
     top: 0;
     z-index: 10;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    gap: 8px 16px;
     padding: 18px 24px;
     border-bottom: 1px solid var(--line);
     background: rgba(255,255,255,0.9);
     backdrop-filter: blur(6px);
   }
-  .topbar .logo { font-family: 'DM Serif Display', serif; font-size: 1.1rem; text-decoration: none; }
-  .topbar nav a { margin-left: 18px; font-size: 0.85rem; text-decoration: none; color: var(--muted); }
-  .topbar nav a:hover { color: var(--fg); }
+  .topbar .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; text-decoration: none; color: var(--fg); flex-shrink: 0; }
+  .topbar .logo img { height: 46px; width: auto; display: block; flex-shrink: 0; }
+  .topbar nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .topbar nav a { font-size: 0.85rem; font-weight: 500; text-decoration: none; color: var(--muted); white-space: nowrap; }
+  .topbar nav a:hover { color: var(--accent); }
 
   .wrap { max-width: 780px; margin: 0 auto; padding: 48px 24px 96px; }
 
-  .doc-title { font-size: 2.1rem; margin: 0 0 6px; }
-  .doc-sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 32px; }
-  .meta-card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 18px 20px;
-    font-size: 0.85rem;
-    margin-bottom: 36px;
-  }
-  .meta-card p { margin: 4px 0; }
+  .breadcrumb { font-size: 0.8rem; color: var(--muted); margin: 0 0 14px; }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
 
-  h2 { font-size: 1.3rem; margin-top: 48px; margin-bottom: 12px; padding-top: 8px; border-top: 1px solid var(--line); }
-  section:first-of-type h2:first-of-type { border-top: none; }
-  h1 + .meta-card + h2 { border-top: none; }
+  .doc-title { font-size: 2.1rem; margin: 0 0 14px; }
+
+  .doc-meta { color: var(--muted); font-size: 0.9rem; margin: 0 0 40px; }
+  .doc-meta p { margin: 3px 0; }
+  .doc-meta strong { color: var(--fg); font-weight: 600; }
+
+  h2 { font-size: 1.35rem; font-weight: 700; margin-top: 52px; margin-bottom: 14px; }
 
   ul, ol { padding-left: 1.2em; }
   li { margin: 6px 0; }
-  strong { font-weight: 500; }
+  strong { font-weight: 600; }
+
+  p, li { text-align: justify; text-justify: inter-word; hyphens: auto; }
 
   .glance {
     background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 10px;
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
     padding: 20px 22px;
-    margin: 24px 0 36px;
+    margin: 0 0 40px;
   }
   .glance h3 { margin: 0 0 10px; font-size: 1.05rem; }
   .glance-note { font-size: 0.8rem; color: var(--muted); margin-top: 10px; }
 
-  .toc {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-    font-size: 0.85rem;
-  }
-  .toc a {
-    text-decoration: none;
-    padding: 6px 14px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    color: var(--muted);
-  }
-  .toc a.active, .toc a:hover { color: var(--fg); border-color: var(--fg); }
-
-  .divider-major {
-    margin: 64px 0;
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.8rem;
+  hr.divider-major {
+    margin: 72px 0;
+    border: none;
+    border-top: 1px solid var(--line);
   }
 
   footer {
@@ -109,12 +96,76 @@
     font-size: 0.8rem;
     border-top: 1px solid var(--line);
   }
+
+  @media (max-width: 600px) {
+    .topbar { padding: 14px 16px; }
+    .topbar .logo { font-size: 0.95rem; }
+    .topbar .logo img { height: 32px; }
+    .topbar nav a { font-size: 0.75rem; }
+    .wrap { padding: 32px 16px 64px; }
+    .doc-title { font-size: 1.3rem; line-height: 1.3; }
+    h2 { font-size: 1.1rem; margin-top: 36px; }
+    .glance { padding: 14px 16px; }
+    body { font-size: 14.5px; }
+  }
+
+  .to-top {
+    position: fixed;
+    right: 24px;
+    bottom: 56px;
+    z-index: 20;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px) scale(0.9);
+    transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  .to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    animation: toTopIn 0.5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .to-top:focus { outline: none; }
+  .to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .to-top svg { width: 18px; height: 18px; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .to-top:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(255,255,255,0.8);
+      transform: translateY(-4px) scale(1.06);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.14);
+    }
+  }
+
+  @keyframes toTopIn {
+    0% { opacity: 0; transform: translateY(16px) scale(0.8); }
+    60% { opacity: 1; transform: translateY(-4px) scale(1.05); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @media (max-width: 600px) {
+    .to-top { right: 16px; bottom: 40px; width: 40px; height: 40px; }
+  }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <a class="logo" href="/">dbottrack.com</a>
+  <a class="logo" href="/"><img src="/images/brand-logo.svg" alt="Dbot Track" /></a>
   <nav>
     <a href="#privacy-policy">Privacy Policy</a>
     <a href="#terms-and-conditions">Terms &amp; Conditions</a>
@@ -123,18 +174,14 @@
 
 <div class="wrap">
 
-  <div class="toc">
-    <a href="#privacy-policy">Privacy Policy</a>
-    <a href="#terms-and-conditions">Terms &amp; Conditions</a>
-  </div>
-
   <section id="privacy-policy">
+    <p class="breadcrumb"><a href="/">Dbot Track</a> / Privacy Policy</p>
     <h1 class="doc-title">Dbot Track — Privacy Policy</h1>
-    <div class="meta-card">
+    <div class="doc-meta">
       <p><strong>Data Fiduciary:</strong> Dbotics Technology and Solution Private Limited ("Dbotics", "we", "us", "our")</p>
       <p><strong>Registered address:</strong> 3E, Emporio, 10th Avenue, Ashok Nagar, Chennai – 600 083, Tamil Nadu, India</p>
-      <p><strong>Applies to:</strong> www.dbot.co.in · www.dbottrack.com · app.dbottrack.com (web app) · Dbot Track for Android (the "App"), together the "Services"</p>
-      <p><strong>Effective date:</strong> 22 July 2026</p>
+      <p><strong>Applies to:</strong> www.dbot.co.in · www.dbottrack.com · app.dbottrack.com (web app) · Dbot Track for Android and iOS (the "App"), together the "Services"</p>
+      <p><strong>Effective date:</strong> 15 July 2026</p>
       <p><strong>Last updated:</strong> 22 July 2026</p>
     </div>
 
@@ -142,16 +189,16 @@
       <h3>At a glance</h3>
       <ul>
         <li>We provide Dbot Track primarily to <strong>businesses</strong>. Most information in the Services is uploaded and controlled by your <strong>organization</strong>.</li>
-        <li>We collect account details, the project/site records you create, device and usage data, and — only if enabled and permitted — <strong>precise location while the App is in use (foreground only; never in the background)</strong>.</li>
+        <li>We collect account details, the project/site records you create, and device and usage data.</li>
         <li>We <strong>do not sell</strong> personal data and we do not use it for third-party advertising.</li>
         <li>You can <strong>request access to, correction of, or deletion of your personal data</strong>, and you can <strong>request deletion of your account</strong> — see <em>Your rights</em> and <em>Account and data deletion</em>.</li>
-        <li>Questions or complaints: <strong>privacy@dbottrack.com</strong>, or our <strong>Grievance Officer</strong> (see <em>Grievance redressal</em>).</li>
+        <li>Questions or complaints: <strong>privacy@dbottrack.com</strong> (see <em>Grievance redressal</em>).</li>
       </ul>
       <p class="glance-note">This summary is for convenience only; the full terms below govern.</p>
     </div>
 
     <h2 id="p1">1. Who we are and what this Policy covers</h2>
-    <p>This Privacy Policy explains how Dbotics collects, uses, shares, and protects personal data when you use the Services. It applies to our websites, our web app, and the Dbot Track Android App.</p>
+    <p>This Privacy Policy explains how Dbotics collects, uses, shares, and protects personal data when you use the Services. It applies to our websites, our web app, and the Dbot Track App for Android and iOS.</p>
     <p>Dbot Track is a construction-execution platform used by construction companies to monitor project progress, primarily through on-site staff (QS, QC, Site Engineers, HSE, Project Managers, and similar roles) and management teams.</p>
     <p>Our Services may link to third-party websites or services. Those third parties are governed by their own privacy policies, not this one.</p>
     <p>This Policy should be read together with our <strong>Terms &amp; Conditions</strong> and any separate agreement (Order Form) between Dbotics and your organization.</p>
@@ -180,9 +227,7 @@
       <li>Photos, videos, drawings, documents, attachments, and notes/annotations;</li>
       <li>Activity history (who did what, and when).</li>
     </ul>
-    <p><strong>C. Location information (precise; foreground only)</strong></p>
-    <p>Where your organization enables it and your device permissions allow it, the App collects <strong>precise (GPS) location only while the App is open and in active use (in the foreground)</strong>, to support site-based reporting and location-aware workflows. <strong>We do not collect location in the background or when the App is closed.</strong> You can turn off location permission at any time in your device settings; some location-aware features may then not work.</p>
-    <p><strong>D. Information collected automatically</strong></p>
+    <p><strong>C. Information collected automatically</strong></p>
     <ul>
       <li>Device and network information — IP address, device type, operating system, browser/App version, language, and device identifiers.</li>
       <li>Usage and diagnostic information — screens/pages viewed, features used, timestamps, and performance/crash/error logs.</li>
@@ -203,7 +248,7 @@
 
     <h2 id="p5">5. Analytics and cookies</h2>
     <p>We use cookies and similar technologies on our websites and web app for essential functions such as maintaining sessions and remembering preferences.</p>
-    <p>We may use third-party product analytics tools to understand how the Services are used and to improve them. Such providers may process usage events and device/SDK identifiers on our behalf. We may change or add analytics providers over time and will update this Policy accordingly. We do not use analytics for third-party advertising.</p>
+    <p>We use <strong>PostHog</strong> for product analytics to understand how the Services are used and to improve them. PostHog may process usage events and device/SDK identifiers on our behalf. We may change or add analytics providers over time and will update this Policy accordingly. We do not use analytics for third-party advertising.</p>
 
     <h2 id="p6">6. How we share information</h2>
     <p>We <strong>do not sell</strong> personal data. We share information only as needed to run the Services, comply with law, and protect rights and safety.</p>
@@ -211,7 +256,7 @@
     <ul>
       <li><strong>Amazon Web Services (AWS)</strong> — hosting and storage (files may be stored in Amazon S3);</li>
       <li><strong>Resend</strong> — transactional email delivery (processes recipient email address and email content to send OTPs, invitations, and password resets);</li>
-      <li>Product analytics providers (see <em>Analytics and cookies</em>);</li>
+      <li><strong>PostHog</strong> — product analytics (see <em>Analytics and cookies</em>);</li>
       <li><strong>Google Workspace</strong> — our internal business email and communications.</li>
     </ul>
     <p><strong>Legal and safety.</strong> We may disclose information where we reasonably believe it is necessary to comply with applicable law or valid legal process, or to protect the rights, safety, and security of Dbotics, our customers, users, and others.</p>
@@ -253,18 +298,13 @@
     </ul>
 
     <h2 id="p11">11. Account and data deletion</h2>
-    <p>You can request deletion of your Dbot Track account and associated personal data through any of the following, without needing to reinstall the App:</p>
-    <ul>
-      <li><strong>In the App / web app:</strong> go to <strong>Settings → Account → Request account deletion</strong>; or</li>
-      <li><strong>By email:</strong> contact <strong>privacy@dbottrack.com</strong> with the subject line "Account deletion request".</li>
-    </ul>
+    <p>To request deletion of your Dbot Track account and associated personal data, you must contact us by emailing <strong>privacy@dbottrack.com</strong> with the subject line "Account deletion request".</p>
     <p><strong>What happens next.</strong> Because Dbot Track accounts are typically created and managed by an organization, we may need to verify your request and, where the account is organization-managed, coordinate with or seek confirmation from your organization's administrator. Once verified, we will delete or de-identify your personal data associated with the account within <strong>90 days</strong>, except where we are required to retain certain information for legal, security, or operational reasons (for example, records we must keep to comply with law, resolve disputes, or maintain security). Certain Customer Data owned by your organization may be retained by, exported to, or deleted at the direction of your organization in accordance with our agreement with it. We will tell you what, if anything, we must retain and why.</p>
 
     <h2 id="p12">12. Grievance redressal</h2>
-    <p>If you have any questions, concerns, or complaints about how we handle your personal data, you may contact our <strong>Grievance Officer</strong>, appointed under the DPDP Act:</p>
+    <p>If you have any questions, concerns, or complaints about how we handle your personal data, you may contact us at:</p>
     <ul>
-      <li><strong>Designation:</strong> Grievance Officer, Dbotics Technology and Solution Private Limited</li>
-      <li><strong>Email:</strong> grievance@dbottrack.com</li>
+      <li><strong>Email:</strong> privacy@dbottrack.com</li>
       <li><strong>Address:</strong> 3E, Emporio, 10th Avenue, Ashok Nagar, Chennai – 600 083, Tamil Nadu, India</li>
     </ul>
     <p>We will acknowledge and respond to complaints within the timeframes required by the DPDP Act. If you are not satisfied with our response, you may escalate your complaint to the <strong>Data Protection Board of India</strong> in accordance with the DPDP Act.</p>
@@ -281,16 +321,16 @@
     <h2 id="p16">16. How to contact us</h2>
     <p><strong>Dbotics Technology and Solution Private Limited</strong><br />
     3E, Emporio, 10th Avenue, Ashok Nagar, Chennai – 600 083, Tamil Nadu, India<br />
-    Privacy enquiries: <strong>privacy@dbottrack.com</strong><br />
-    Grievance Officer: <strong>grievance@dbottrack.com</strong></p>
+    Privacy enquiries: <strong>privacy@dbottrack.com</strong></p>
   </section>
 
-  <div class="divider-major">• • •</div>
+  <hr class="divider-major" />
 
   <section id="terms-and-conditions">
+    <p class="breadcrumb"><a href="/">Dbot Track</a> / Terms &amp; Conditions</p>
     <h1 class="doc-title">Dbot Track — Terms &amp; Conditions</h1>
-    <div class="meta-card">
-      <p><strong>Effective date:</strong> 22 July 2026</p>
+    <div class="doc-meta">
+      <p><strong>Effective date:</strong> 15 July 2026</p>
       <p><strong>Last updated:</strong> 22 July 2026</p>
     </div>
 
@@ -311,8 +351,8 @@
     <h2 id="t3">3. Pilot / trial</h2>
     <p>The Services may be provided as a pilot, trial, or evaluation. We may modify, limit, or end a pilot or trial as agreed in the Order Form or by notice.</p>
 
-    <h2 id="t4">4. Order Forms and project-specific agreements</h2>
-    <p>Dbot Track is provided on a project basis. For each project, Dbotics and the Customer will enter into an Order Form specifying scope, duration, pricing, and any special terms. If there is any conflict between an Order Form and these Terms, the <strong>Order Form controls</strong> for that project.</p>
+    <h2 id="t4">4. Order Forms and account registration</h2>
+    <p>Dbot Track is provided on a company (organization) basis. Dbotics and the Customer enter into a single Order Form specifying scope, duration, pricing, and any special terms at the organization level. Once registered, the Customer may create and manage multiple projects within the Services under that Order Form. If there is any conflict between an Order Form and these Terms, the <strong>Order Form controls</strong>.</p>
 
     <h2 id="t5">5. Fees, invoicing, and payment</h2>
     <ul>
@@ -388,7 +428,7 @@
     <p>The Customer will defend, indemnify, and hold harmless Dbotics from third-party claims arising from Customer Data, or from the Customer's or its Users' misuse of the Services or violation of these Terms.</p>
 
     <h2 id="t18">18. Mobile applications and app-store terms</h2>
-    <p>If you download the App from the Google Play Store, your use is also subject to Google Play's terms. Google is not a party to these Terms and is not responsible for the App or its content. You represent that you are not located in a jurisdiction subject to an embargo that would prohibit your use of the App and that you will comply with all applicable laws in using it.</p>
+    <p>If you download the App from the Google Play Store or the Apple App Store, your use is also subject to that store's terms (including, for the Apple App Store, Apple's standard End User License Agreement terms). Google and Apple are not parties to these Terms and are not responsible for the App or its content. You represent that you are not located in a jurisdiction subject to an embargo that would prohibit your use of the App and that you will comply with all applicable laws in using it.</p>
 
     <h2 id="t19">19. Notices</h2>
     <p>Legal notices to us must be sent to <strong>legal@dbottrack.com</strong>. We may send notices to the Customer's primary administrator email or the email in the Order Form.</p>
@@ -411,6 +451,21 @@
 <footer>
   Dbotics Technology and Solution Private Limited · 3E, Emporio, 10th Avenue, Ashok Nagar, Chennai – 600 083, Tamil Nadu, India · legal@dbottrack.com · privacy@dbottrack.com
 </footer>
+
+<button class="to-top" id="toTop" aria-label="Scroll to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+</button>
+
+<script>
+  var toTopBtn = document.getElementById('toTop');
+  window.addEventListener('scroll', function () {
+    toTopBtn.classList.toggle('visible', window.scrollY > 400);
+  });
+  toTopBtn.addEventListener('click', function () {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toTopBtn.blur();
+  });
+</script>
 
 </body>
 </html>
