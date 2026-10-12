@@ -225,6 +225,37 @@ footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
 /* reveal on scroll */
 .rv{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
 .rv.in{opacity:1;transform:none}
+/* ---------- phones ---------- */
+.swipe{display:none}
+@media(max-width:860px){.hd nav{margin-left:auto}}
+@media(max-width:600px){
+  section{padding:64px 0}
+  .hero{padding:40px 0 56px}
+  .band{padding:64px 0}
+  .sec-head{margin-bottom:32px}
+  .card{padding:20px}
+  .who h3{font-size:22px;margin-bottom:16px}
+  .mini2{gap:10px}.mini{padding:12px}.mini b{font-size:16px}.mini span{font-size:13px}
+  .row{padding:12px 14px;gap:12px;font-size:15px}.row svg{width:84px;height:30px}
+  .docs{gap:8px}.doc{padding:14px}.doc b{font-size:17px}.doc span{font-size:13px}
+  .basebox{padding:28px}.basebox b{font-size:28px}
+  .part{padding:22px}
+  .feature+.feature{margin-top:72px}
+  .feature[style*="margin-top"]{margin-top:64px!important}
+  #tracking .wrap>div[style],#insights .wrap>div[style]{margin-top:72px!important}
+  .steps li{padding:12px}
+  .chart{padding:16px;overflow-x:auto}.chart svg{min-width:640px}
+  .swipe{display:block;font-size:13px;color:var(--muted);margin:-16px 0 10px;text-align:right}
+  .band .wrap{text-align:center}
+  .band h2{margin-left:auto;margin-right:auto}
+  .band .rule{margin-left:auto;margin-right:auto}
+  .band .band-cta{justify-content:center}
+  .flow{flex-direction:column;align-items:center;gap:6px}
+  .flow i{width:2px;height:16px}
+  .flow i:after{right:auto;top:auto;left:-4px;bottom:-2px;border:5px solid transparent;border-top:7px solid var(--orange);border-bottom:0}
+  .form-foot{flex-direction:column-reverse;align-items:stretch;text-align:center}
+  .ft span{font-size:12px;line-height:1.6;text-wrap:balance}
+}
 @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
 </style>
 </head>
@@ -440,6 +471,7 @@ footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
   <div class="wrap">
     <div class="sec-head rv"><span class="eyebrow">04 · Insights · Time</span><h2>What progress means for the timeline</h2>
       <p class="lead">Review how work has progressed, see the forecast finish, and plan the next commitments — on one curve.</p></div>
+    <p class="swipe" aria-hidden="true">Swipe to see the full chart →</p>
     <div class="chart rv">
       <div class="legend"><span><i style="background:#879797"></i>Scheduled</span><span><i style="background:#482E4C"></i>Planned</span><span><i style="background:#FF8F1F"></i>Actual</span><span><i style="background:repeating-linear-gradient(90deg,#FF8F1F 0 7px,transparent 7px 11px)"></i>Forecast</span></div>
       <svg viewBox="0 0 1664 540" font-family="Geist, Arial, sans-serif" role="img" aria-label="Illustrative S-curve: actual progress to today, then a forecast to the expected finish">
@@ -459,6 +491,7 @@ footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
     <div style="margin-top:112px">
       <div class="sec-head rv"><span class="eyebrow">Insights · Cost</span><h2>Planned vs actual unit price</h2>
         <p class="lead">For every BOQ line item: what each unit was budgeted to cost in resources, and what it is actually costing. Open a row to see the resources behind it.</p></div>
+      <p class="swipe" aria-hidden="true">Swipe to see the full table →</p>
       <div class="cost rv">
         <table>
           <thead>
@@ -489,7 +522,7 @@ footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
     <h2>Connecting project planning with what happens on site.</h2>
     <div class="rule"></div>
     <div class="flow" aria-label="Takeoff, then Lookahead, then Work Package, then DPR, then Insights"><span>Takeoff</span><i></i><span>Lookahead</span><i></i><span>Work Package</span><i></i><span>DPR</span><i></i><span>Insights</span></div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <div class="band-cta" style="display:flex;gap:12px;flex-wrap:wrap">
       <a class="btn btn-orange btn-lg" href="#contact">Talk to us</a>
       <a class="btn btn-ghost-light btn-lg" href="https://app.dbottrack.com" target="_blank" rel="noopener" data-login>Log in</a>
     </div>
@@ -516,7 +549,7 @@ footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
       <div class="fld"><label for="f-name">Name <i>*</i></label><input id="f-name" name="name" placeholder="Your name" maxlength="80" autocomplete="name" required aria-describedby="e-name"><span class="err" id="e-name"></span></div>
       <div class="fld"><label for="f-co">Company</label><input id="f-co" name="company" placeholder="Company name" maxlength="100" autocomplete="organization" aria-describedby="e-co"><span class="err" id="e-co"></span></div>
       <div class="fld"><label for="f-mail">Work email <i>*</i></label><input id="f-mail" name="email" type="email" placeholder="name@company.com" maxlength="254" autocomplete="email" required aria-describedby="e-mail"><span class="err" id="e-mail"></span></div>
-      <div class="fld"><label for="f-ph">Mobile number</label><input id="f-ph" name="phone" type="tel" inputmode="tel" placeholder="+91 98765 43210" maxlength="20" autocomplete="tel" aria-describedby="e-ph"><span class="err" id="e-ph"></span></div>
+      <div class="fld"><label for="f-ph">Mobile number</label><input id="f-ph" name="phone" type="tel" inputmode="tel" placeholder="+91 9363520220" maxlength="20" autocomplete="tel" aria-describedby="e-ph"><span class="err" id="e-ph"></span></div>
       <div class="fld full"><label for="f-msg">How can we help?</label><textarea id="f-msg" name="message" placeholder="Number of projects, what you'd like to see…" maxlength="1000" aria-describedby="e-msg"></textarea><span class="err" id="e-msg"></span></div>
       <div class="sent" role="status">Thanks — we'll be in touch shortly.</div>
       <div class="failed" role="alert">Sorry, your message couldn't be sent. Please email us at <a href="mailto:solomon@dbot.co.in">solomon@dbot.co.in</a>.</div>
@@ -530,7 +563,7 @@ footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
   <div class="wrap ft">
     <img src="assets/logo.png" alt="dbot">
     <nav aria-label="Footer"><a href="#product">Product</a><a href="#how">How it works</a><a href="#insights">Insights</a><a href="#contact">Contact</a><a href="/privacy-policy-and-terms/">Privacy &amp; Terms</a><a href="https://app.dbottrack.com" target="_blank" rel="noopener" data-login>Log in</a></nav>
-    <span>© 2026 DBOTICS TECHNOLOGY AND SOLUTION PRIVATE LIMITED</span>
+    <span>© 2026 Dbotics Technology and Solution Private Limited</span>
   </div>
 </footer>
 
@@ -540,6 +573,10 @@ footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
   b.addEventListener('click',function(){var o=h.classList.toggle('open');b.setAttribute('aria-expanded',o);});
   h.querySelectorAll('nav a').forEach(function(a){a.addEventListener('click',function(){h.classList.remove('open');b.setAttribute('aria-expanded',false);});});
 })();
+
+/* ---------- logo: back to the top ---------- */
+document.querySelector('.hd .logo').addEventListener('click',function(e){e.preventDefault();
+  scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});history.replaceState(null,'',location.pathname);});
 
 /* ---------- reveal on scroll + active nav ---------- */
 (function(){
