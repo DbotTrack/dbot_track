@@ -200,6 +200,8 @@ form.card{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .form-foot{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:14px}
 .form-foot small{color:var(--muted);font-size:13px}
 .sent{grid-column:1/-1;display:none;background:var(--ok-bg);color:var(--ok);border-radius:var(--r);padding:12px 14px;font-weight:600}
+.failed{grid-column:1/-1;display:none;background:var(--err-bg);color:var(--err);border-radius:var(--r);padding:12px 14px;font-weight:600}.failed a{text-decoration:underline}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
 @media(max-width:900px){.contact{grid-template-columns:1fr}form.card{grid-template-columns:1fr}}
 
 footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
@@ -483,14 +485,16 @@ footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
       </div>
     </div>
 
-    <!-- TODO(engineering): wire to the real enquiry endpoint (action/method), add spam protection -->
-    <form class="card rv" id="enquiry" action="[FORM_ENDPOINT]" method="post" novalidate>
+    <!-- Submissions go to the Google Sheet via its Apps Script web app (/exec URL) -->
+    <form class="card rv" id="enquiry" action="https://script.google.com/macros/s/AKfycbxU6tZ7mwK9L2XSCW_psOPOwDOmiX5RUFYsIKiaFhCJy6qwE1nz6yGvQbk78SI60DNR/exec" method="post" novalidate>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
       <div class="fld"><label for="f-name">Name <i>*</i></label><input id="f-name" name="name" placeholder="Your name" required><span class="err">Enter your name</span></div>
       <div class="fld"><label for="f-co">Company</label><input id="f-co" name="company" placeholder="Company name"></div>
       <div class="fld"><label for="f-mail">Work email <i>*</i></label><input id="f-mail" name="email" type="email" placeholder="name@company.com" required><span class="err">Enter a valid email</span></div>
       <div class="fld"><label for="f-ph">Phone</label><input id="f-ph" name="phone" type="tel" placeholder="+91"></div>
       <div class="fld full"><label for="f-msg">How can we help?</label><textarea id="f-msg" name="message" placeholder="Number of projects, what you'd like to see…"></textarea></div>
       <div class="sent" role="status">Thanks — we'll be in touch shortly.</div>
+      <div class="failed" role="alert">Sorry, your message couldn't be sent. Please email us at <a href="mailto:solomon@dbot.co.in">solomon@dbot.co.in</a>.</div>
       <div class="form-foot"><small>We'll only use this to reply to you.</small><button class="btn btn-sage" type="submit">Send message</button></div>
     </form>
   </div>
@@ -551,14 +555,18 @@ document.querySelectorAll('.cost tr.parent').forEach(function(tr){
     document.querySelectorAll('.cost tr[data-of="'+tr.getAttribute('data-row')+'"]').forEach(function(r){r.classList.toggle('show',o);});});
 });
 
-/* ---------- contact form: client-side checks only (prototype) ---------- */
+/* ---------- contact form: validate, then append a row to the Google Sheet ---------- */
 document.getElementById('enquiry').addEventListener('submit',function(ev){
   ev.preventDefault();var f=ev.target,ok=true;
   [['f-name',function(v){return v.trim().length>0;}],['f-mail',function(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);}]].forEach(function(c){
     var i=document.getElementById(c[0]),good=c[1](i.value);i.parentNode.classList.toggle('bad',!good);if(!good)ok=false;});
   if(!ok)return;
-  /* TODO(engineering): POST the form to [FORM_ENDPOINT]; show the success state only on a 2xx response */
-  f.querySelector('.sent').style.display='block';f.querySelector('button[type=submit]').disabled=true;
+  var btn=f.querySelector('button[type=submit]'),sent=f.querySelector('.sent'),failed=f.querySelector('.failed');
+  btn.disabled=true;btn.textContent='Sending…';failed.style.display='none';
+  fetch(f.action,{method:'POST',body:new URLSearchParams(new FormData(f))})
+    .then(function(r){if(!r.ok)throw new Error(r.status);return r.json();})
+    .then(function(d){if(!d.ok)throw new Error('rejected');sent.style.display='block';btn.textContent='Sent';f.reset();})
+    .catch(function(){failed.style.display='block';btn.disabled=false;btn.textContent='Send message';});
 });
 </script>
 </body>
