@@ -27,7 +27,7 @@ export default function ComingSoon() {
           <span className={styles.statusDot} />
           In development
         </span>
-        <span className={styles.year}>© 2025 dbottrack</span>
+        <span className={styles.year}>© 2026 dbottrack</span>
       </div>
 
       <div className={styles.bgText} aria-hidden="true">soon</div>
