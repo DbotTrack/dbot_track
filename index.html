@@ -1,15 +1,565 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dbottrack — Coming Soon</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DBOT Track · Construction planning and monitoring</title>
+<meta name="description" content="DBOT Track connects project planning with what happens on site — takeoff, lookahead, work packages, daily progress reports, and time and cost insights for building contractors.">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+<style>
+/* ---------- DBOT Track design-system tokens (Design Systems/design-system.md) ---------- */
+@font-face{font-family:'Geist';font-style:normal;font-weight:400 700;font-display:swap;src:url(assets/geist-latin.woff2) format('woff2')}
+:root{
+  --orange:#FF8F1F;--orange-text:#E68014;--plum:#482E4C;--plum-deep:#3A255F;--sage:#879797;
+  --canvas:#F8FAFC;--surface:#FFFFFF;--tint:#F1F5F9;--border:#E5E7EB;--border-input:#D1D5DB;
+  --text:#111827;--muted:#6B7280;--placeholder:#9CA3AF;
+  --ok:#047857;--ok-bg:#C7FDC7;--err:#EF4444;--err-bg:#FFD3D3;--warn:#E27200;--warn-bg:#FFEFCA;
+  --chart-green:#43946C;--chart-orange:#F0953F;--chart-red:#AF311F;--today:#394150;
+  --plan-band:#F3F0FE;--plan-cell:#FAF8FE;--act-band:#FFF4E8;--act-cell:#FFFAF4;
+  --r:8px;--r-card:16px;--r-lg:24px;
+  --shadow:0 12px 32px rgba(17,24,39,.08);--shadow-hover:0 4px 12px rgba(17,24,39,.18);
+  --max:1200px;--gutter:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font-family:'Geist',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:var(--text);background:var(--canvas);line-height:1.5;-webkit-font-smoothing:antialiased;font-size:16px}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gutter)}
+.num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange-text)}
+h1,h2,h3{letter-spacing:-.02em;line-height:1.1}
+h1{font-size:clamp(44px,7vw,84px);font-weight:700}
+h2{font-size:clamp(30px,4vw,44px);font-weight:700}
+h3{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.lead{font-size:clamp(17px,1.6vw,20px);color:var(--muted);max-width:60ch}
+section{padding:96px 0}
+.sec-head{display:flex;flex-direction:column;gap:12px;margin-bottom:48px}
+
+/* buttons — Plum = critical trigger (Log in), Orange = in-flow, Sage = confirm (Send) */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 20px;border:0;border-radius:var(--r);font:500 15px/1 inherit;font-family:inherit;color:#fff;cursor:pointer;transition:box-shadow .13s,transform .06s;white-space:nowrap}
+.btn:hover{box-shadow:var(--shadow-hover)}.btn:active{transform:scale(.98)}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(148,163,184,.45)}
+.btn-plum{background:var(--plum)}.btn-orange{background:var(--orange)}.btn-sage{background:var(--sage)}
+.btn-sec{background:#F4F4F5;color:var(--text)}
+.btn-ghost-light{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4)}
+.btn-lg{height:48px;padding:0 26px;font-size:16px}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.hd{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.hd .logo img{height:32px;width:auto}
+.hd nav{display:flex;gap:4px;align-items:center}
+.hd nav a.lnk{padding:8px 12px;border-radius:var(--r);font-size:14px;font-weight:600;color:var(--muted)}
+.hd nav a.lnk:hover{background:var(--tint);color:var(--text)}
+.hd nav a.lnk.on{color:var(--orange-text)}
+.menu-btn{display:none;background:none;border:0;padding:8px;cursor:pointer;color:var(--text)}
+@media(max-width:860px){
+  .hd nav .lnk{display:none}
+  .menu-btn{display:block}
+  header.open .hd nav{position:absolute;top:64px;left:0;right:0;background:#fff;border-bottom:1px solid var(--border);flex-direction:column;align-items:stretch;padding:8px var(--gutter) 16px}
+  header.open .hd nav .lnk{display:block}
+}
+
+/* ---------- hero ---------- */
+.hero{padding:72px 0 88px;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center}
+.hero .tag{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:24px}
+.hero .tag i{width:8px;height:8px;border-radius:50%;background:var(--orange)}
+.hero h1{margin-bottom:20px}
+.hero .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.hero-art svg{width:100%;height:auto}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero-art{max-width:520px}}
+
+/* ---------- cards ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:32px}
+.who{display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:stretch}
+.who .arrow{display:flex;align-items:center;color:var(--orange)}
+.who .lab{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.who h3{font-size:26px;margin-bottom:24px}
+.mini2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.mini{background:var(--tint);border-radius:var(--r-card);padding:18px;display:flex;flex-direction:column;gap:8px}
+.mini svg{width:100%;height:auto;background:#fff;border-radius:10px}
+.mini b{font-size:17px}.mini span{font-size:14px;color:var(--muted)}
+.rows{display:flex;flex-direction:column;gap:12px}
+.row{background:var(--tint);border-radius:var(--r-card);padding:14px 18px;display:flex;align-items:center;gap:18px;font-weight:700}
+.row svg{flex:none;width:120px;height:42px}
+@media(max-width:900px){.who{grid-template-columns:1fr}.who .arrow{justify-content:center;transform:rotate(90deg)}}
+
+.parts{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:p}
+.part{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:28px;display:flex;flex-direction:column;gap:12px;transition:box-shadow .15s,transform .15s}
+.part:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.part .n{font-size:44px;font-weight:700;color:var(--orange);letter-spacing:-.03em;line-height:1}
+.part h3{font-size:24px}.part p{color:var(--muted);font-size:15px}
+.part a{margin-top:auto;font-size:14px;font-weight:600;color:var(--orange-text)}
+@media(max-width:900px){.parts{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.parts{grid-template-columns:1fr}}
+
+/* baseline inputs */
+.inputs{display:grid;grid-template-columns:1fr 64px 1fr;gap:16px;align-items:center}
+.docs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.doc{background:var(--tint);border:1px solid var(--border);border-radius:var(--r-card);padding:20px}
+.doc b{display:block;font-size:20px}.doc span{font-size:14px;color:var(--muted)}
+.doc.later{background:#fff;border:2px dashed var(--border-input)}
+.basebox{background:var(--plum);color:#fff;border-radius:var(--r-lg);padding:40px}
+.basebox b{display:block;font-size:34px;letter-spacing:-.02em;line-height:1.1;margin-bottom:10px}.basebox span{color:#D9CCDC}
+.inputs .to{color:var(--placeholder);display:flex;justify-content:center}
+@media(max-width:860px){.inputs{grid-template-columns:1fr}.inputs .to{transform:rotate(90deg)}}
+
+/* ---------- feature walkthroughs (GIF + synced steps) ---------- */
+.feature{display:grid;grid-template-columns:380px 1fr;gap:56px;align-items:center}
+.feature+.feature{margin-top:112px}
+.feature.flip{grid-template-columns:1fr 380px}
+.feature.flip .ftext{order:2}
+.ftext{display:flex;flex-direction:column;gap:14px}
+.ftext p.lead{font-size:17px}
+.steps{list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.steps li{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:1px solid transparent;transition:background .25s,border-color .25s,box-shadow .25s}
+.steps .k{flex:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;background:var(--border);color:var(--placeholder);transition:background .25s,color .25s}
+.steps b{display:block;font-size:17px;color:var(--placeholder);transition:color .25s}
+.steps span{display:block;font-size:14px;color:#B6BCC6;transition:color .25s}
+.steps li.done .k{background:var(--sage);color:#fff}.steps li.done b{color:#374151}.steps li.done span{color:var(--placeholder)}
+.steps li.on{background:#fff;border-color:var(--border);box-shadow:var(--shadow)}
+.steps li.on .k{background:var(--orange);color:#fff}.steps li.on b{color:var(--text)}.steps li.on span{color:var(--muted)}
+.screen{background:#fff;border:1px solid var(--border);border-radius:var(--r-card);box-shadow:0 18px 44px rgba(17,24,39,.12);overflow:hidden}
+.screen .bar{height:34px;display:flex;align-items:center;gap:7px;padding:0 14px;border-bottom:1px solid var(--border);background:var(--canvas)}
+.screen .bar i{width:10px;height:10px;border-radius:50%;background:var(--border-input)}
+.screen .bar em{margin-left:10px;font-style:normal;font-size:12px;color:var(--placeholder)}
+.screen img{width:100%;aspect-ratio:1440/900;object-fit:cover}
+@media(max-width:980px){.feature,.feature.flip{grid-template-columns:1fr;gap:28px}.feature.flip .ftext{order:0}}
+
+/* compiled views */
+.views{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.view{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;display:flex;flex-direction:column;gap:14px}
+.view .ic{width:36px;height:36px;color:var(--orange)}
+.view b{font-size:18px}
+.view svg.ch{width:100%;height:56px}
+@media(max-width:900px){.views{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.views{grid-template-columns:1fr}}
+
+/* time */
+.chart{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:28px}
+.legend{display:flex;flex-wrap:wrap;gap:22px;font-size:14px;color:var(--muted);margin-bottom:16px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{display:inline-block;width:26px;height:4px;border-radius:2px}
+.chart svg{width:100%;height:auto}
+
+/* cost */
+.cost{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:8px;overflow-x:auto}
+.cost table{width:100%;min-width:880px;border-collapse:separate;border-spacing:0;font-size:15px}
+.cost th{font-size:13px;font-weight:600;color:var(--muted);text-align:right;padding:6px 14px 10px}
+.cost th:first-child{text-align:left}
+.cost thead tr.grp th{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;text-align:center;padding:12px 0 4px}
+.cost .pb{background:var(--plan-band);color:var(--plum)}.cost .ab{background:var(--act-band);color:var(--orange-text)}
+.cost thead tr.grp th.pb{border-radius:12px 12px 0 0}.cost thead tr.grp th.ab{border-radius:12px 12px 0 0}
+.cost td{padding:16px 14px;text-align:right;border-top:1px solid var(--border)}
+.cost td:first-child{text-align:left}
+.cost td.p{background:var(--plan-cell)}.cost td.a{background:var(--act-cell)}
+.cost td.up{font-weight:700;font-size:20px}.cost td.p.up{color:var(--plum)}
+.cost .item b{display:block;font-size:16px}.cost .item span{font-size:13px;color:var(--placeholder)}
+.cost .bar{height:6px;width:96px;background:var(--border);border-radius:3px;margin:6px 0 0 auto;overflow:hidden}.cost .bar i{display:block;height:100%;background:var(--orange)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:14px;border-radius:999px;padding:3px 10px}
+.pill.up{color:var(--err);background:var(--err-bg)}.pill.dn{color:var(--ok);background:var(--ok-bg)}
+.cost tr.parent{cursor:pointer}
+.cost tr.parent:hover td{filter:brightness(.985)}
+.cost tr.parent .chev{display:inline-block;transition:transform .2s;color:var(--orange);margin-right:6px}
+.cost tr.parent.open .chev{transform:rotate(90deg)}
+.cost tr.res{display:none}.cost tr.res.show{display:table-row}
+.cost tr.res td{border-top:1px dashed #F1E4D6;font-size:14px;padding:10px 14px}
+.cost tr.res td:first-child{padding-left:42px}
+.cost tr.res .t{color:var(--placeholder)}
+.cost tr.res .tx-up{color:var(--err);font-weight:700}.cost tr.res .tx-dn{color:var(--ok);font-weight:700}
+.cost-note{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;font-size:14px;color:var(--muted);margin-top:14px}
+
+/* closing band */
+.band{background:var(--plum);color:#fff;padding:96px 0}
+.band h2{max-width:20ch;margin:12px 0 18px}
+.band .rule{width:72px;height:6px;border-radius:3px;background:var(--orange);margin-bottom:32px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:40px}
+.flow span{border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:10px 18px;font-weight:600}
+.flow i{width:28px;height:2px;background:var(--orange);position:relative}
+.flow i:after{content:'';position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:7px solid var(--orange);border-right:0}
+
+/* contact */
+.contact{display:grid;grid-template-columns:1fr 1.1fr;gap:56px;align-items:start}
+.details{display:flex;flex-direction:column;gap:18px;margin-top:32px}
+.details div{display:flex;gap:14px;align-items:flex-start}
+.details svg{flex:none;width:22px;height:22px;color:var(--orange);margin-top:2px}
+.details b{display:block;font-size:13px;color:var(--muted);font-weight:600}
+.details a,.details p{font-size:17px;font-weight:600}
+form.card{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.fld{display:flex;flex-direction:column;gap:6px}.fld.full{grid-column:1/-1}
+.fld label{font-size:14px;font-weight:500}.fld label i{color:var(--err);font-style:normal}
+.fld input,.fld textarea,.fld select{height:40px;border:1px solid var(--border-input);border-radius:var(--r);padding:0 12px;font:15px inherit;font-family:inherit;color:var(--text);background:#fff;transition:border-color .12s,box-shadow .12s}
+.fld textarea{height:auto;min-height:96px;padding:10px 12px;resize:vertical}
+.fld input:hover,.fld textarea:hover{border-color:var(--placeholder)}
+.fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--placeholder);box-shadow:0 0 0 3px rgba(148,163,184,.28)}
+.fld input::placeholder,.fld textarea::placeholder{color:var(--placeholder)}
+.fld .err{font-size:12px;color:var(--err);display:none}
+.fld.bad input{border-color:var(--err)}.fld.bad .err{display:block}
+.form-foot{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:14px}
+.form-foot small{color:var(--muted);font-size:13px}
+.sent{grid-column:1/-1;display:none;background:var(--ok-bg);color:var(--ok);border-radius:var(--r);padding:12px 14px;font-weight:600}
+@media(max-width:900px){.contact{grid-template-columns:1fr}form.card{grid-template-columns:1fr}}
+
+footer{border-top:1px solid var(--border);background:#fff;padding:40px 0}
+.ft{display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between;font-size:14px;color:var(--muted)}
+.ft img{height:28px;width:auto}
+.ft nav{display:flex;gap:20px;flex-wrap:wrap}
+.ft nav a:hover{color:var(--text)}
+
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+.rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<!-- ======================= HEADER ======================= -->
+<header id="top">
+  <div class="wrap hd">
+    <a class="logo" href="#top" aria-label="DBOT Track home"><img src="assets/logo.png" alt="dbot"></a>
+    <nav aria-label="Main">
+      <a class="lnk" href="#product">Product</a>
+      <a class="lnk" href="#how">How it works</a>
+      <a class="lnk" href="#insights">Insights</a>
+      <a class="lnk" href="#contact">Contact</a>
+      <a class="btn btn-plum" href="https://app.dbottrack.com" target="_blank" rel="noopener" data-login>Log in</a>
+    </nav>
+    <button class="menu-btn" aria-label="Open menu" aria-expanded="false">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+<!-- ======================= HERO ======================= -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="rv">
+      <span class="tag"><i></i>Construction planning &amp; monitoring</span>
+      <h1>DBOT Track</h1>
+      <p class="lead">Construction project planning and monitoring for building contractors — connecting project planning with what happens on site.</p>
+      <div class="cta">
+        <a class="btn btn-plum btn-lg" href="https://app.dbottrack.com" target="_blank" rel="noopener" data-login>Log in</a>
+        <a class="btn btn-sec btn-lg" href="#contact">Talk to us</a>
+      </div>
+    </div>
+    <div class="hero-art rv" aria-hidden="true">
+      <svg viewBox="0 0 832 824" xmlns="http://www.w3.org/2000/svg" font-family="Geist, Arial, sans-serif">
+        <defs><pattern id="dots" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="16" cy="16" r="2" fill="#D1D5DB"/></pattern>
+        <filter id="sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#111827" flood-opacity=".08"/></filter></defs>
+        <rect width="832" height="824" rx="32" fill="url(#dots)"/>
+        <g fill="none" stroke="#FF8F1F" stroke-width="5" stroke-linecap="round">
+          <path d="M380 140 C 430 140, 400 312, 452 312"/><path d="M622 412 C 622 470, 420 500, 380 500"/><path d="M210 600 C 210 660, 400 684, 452 684"/>
+        </g>
+        <g fill="#FF8F1F"><circle cx="380" cy="140" r="9"/><circle cx="452" cy="312" r="9"/><circle cx="622" cy="412" r="9"/><circle cx="380" cy="500" r="9"/><circle cx="210" cy="600" r="9"/><circle cx="452" cy="684" r="9"/></g>
+        <g filter="url(#sh)"><rect x="40" y="40" width="340" height="200" rx="20" fill="#fff" stroke="#E5E7EB"/><rect x="452" y="212" width="340" height="200" rx="20" fill="#fff" stroke="#E5E7EB"/><rect x="40" y="400" width="340" height="200" rx="20" fill="#fff" stroke="#E5E7EB"/><rect x="452" y="584" width="340" height="200" rx="20" fill="#fff" stroke="#E5E7EB"/></g>
+        <g transform="translate(64 64)"><rect x="4" y="6" width="284" height="88" rx="4" fill="#fff" stroke="#6B7280" stroke-width="2"/><rect x="122" y="8" width="164" height="40" fill="#FF8F1F" fill-opacity=".2"/><path d="M120 6V94M120 50H288" stroke="#6B7280" stroke-width="2"/><path d="M204 50V94" stroke="#FF8F1F" stroke-width="5" stroke-linecap="round"/><g fill="#FF8F1F"><circle cx="40" cy="30" r="6"/><circle cx="84" cy="30" r="6"/><circle cx="40" cy="70" r="6"/></g></g>
+        <g transform="translate(476 236)"><path d="M0 30H292M0 70H292" stroke="#F1F5F9" stroke-width="20"/><rect x="8" y="14" width="120" height="18" rx="5" fill="#43946C"/><rect x="96" y="40" width="130" height="18" rx="5" fill="#F0953F"/><rect x="180" y="66" width="104" height="18" rx="5" fill="#482E4C"/><path d="M160 4V96" stroke="#394150" stroke-width="2" stroke-dasharray="5 5"/></g>
+        <g transform="translate(64 424)"><rect x="10" y="8" width="272" height="10" fill="#43946C"/><rect x="10" y="8" width="10" height="84" fill="#43946C"/><rect x="141" y="18" width="10" height="44" fill="#FF8F1F"/><rect x="141" y="62" width="10" height="30" fill="#FDE3C8" stroke="#FF8F1F" stroke-width="1.5"/><rect x="272" y="18" width="10" height="74" fill="#D0E3FE" stroke="#145FD8" stroke-width="1.5"/><rect x="20" y="82" width="252" height="10" fill="#D0E3FE" stroke="#145FD8" stroke-width="1.5"/></g>
+        <g transform="translate(476 608)" fill="none" stroke-linecap="round"><path d="M6 94C120 92 150 14 286 8" stroke="#879797" stroke-width="4"/><path d="M6 94C140 93 170 24 286 14" stroke="#482E4C" stroke-width="4"/><path d="M6 94C110 93 150 60 180 50" stroke="#FF8F1F" stroke-width="5"/><path d="M180 50C220 36 250 22 286 18" stroke="#FF8F1F" stroke-width="4" stroke-dasharray="8 6"/><path d="M180 4V96" stroke="#394150" stroke-width="2" stroke-dasharray="5 5"/></g>
+        <g font-weight="700"><text x="64" y="220" font-size="24" fill="#FF8F1F">01</text><text x="102" y="220" font-size="30" fill="#111827">Baseline</text>
+        <text x="476" y="392" font-size="24" fill="#FF8F1F">02</text><text x="514" y="392" font-size="30" fill="#111827">Planning</text>
+        <text x="64" y="580" font-size="24" fill="#FF8F1F">03</text><text x="102" y="580" font-size="30" fill="#111827">Tracking</text>
+        <text x="476" y="764" font-size="24" fill="#FF8F1F">04</text><text x="514" y="764" font-size="30" fill="#111827">Insights</text></g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= WHAT IT IS ======================= -->
+<section id="product" style="background:#fff">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">Overview</span><h2>What is DBOT Track?</h2></div>
+    <div class="who">
+      <div class="card rv">
+        <div class="lab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF8F1F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>For site teams</div>
+        <h3>Plan the work.<br>Report the site.</h3>
+        <div class="mini2">
+          <div class="mini"><svg viewBox="0 0 264 140"><rect x="92" y="12" width="44" height="10" rx="3" fill="#D1D5DB"/><rect x="152" y="12" width="44" height="10" rx="3" fill="#D1D5DB"/><rect x="212" y="12" width="40" height="10" rx="3" fill="#D1D5DB"/><rect x="12" y="40" width="64" height="12" rx="3" fill="#D1D5DB"/><rect x="88" y="36" width="116" height="20" rx="4" fill="#FFEFCA"/><circle cx="114" cy="46" r="6" fill="#FF8F1F"/><circle cx="174" cy="46" r="6" fill="#FF8F1F"/><rect x="12" y="74" width="52" height="12" rx="3" fill="#D1D5DB"/><rect x="148" y="70" width="108" height="20" rx="4" fill="#FFEFCA"/><circle cx="174" cy="80" r="6" fill="#FF8F1F"/><circle cx="232" cy="80" r="6" fill="#FF8F1F"/><rect x="12" y="108" width="68" height="12" rx="3" fill="#D1D5DB"/><rect x="148" y="104" width="108" height="20" rx="4" fill="#FFEFCA"/><circle cx="174" cy="114" r="6" fill="#FF8F1F"/><circle cx="232" cy="114" r="6" fill="#FF8F1F"/></svg><b>Plan</b><span>Work, resources and people, day by day</span></div>
+          <div class="mini"><svg viewBox="0 0 264 140"><rect x="20" y="16" width="224" height="10" fill="#43946C"/><rect x="20" y="16" width="10" height="108" fill="#43946C"/><rect x="128" y="26" width="9" height="54" fill="#FF8F1F"/><rect x="128" y="80" width="9" height="34" fill="#FDE3C8" stroke="#FF8F1F" stroke-width="1.5"/><rect x="234" y="26" width="10" height="98" fill="#D0E3FE" stroke="#145FD8" stroke-width="1.5"/><rect x="30" y="114" width="204" height="10" fill="#D0E3FE" stroke="#145FD8" stroke-width="1.5"/></svg><b>Report</b><span>What got done and what was used, daily</span></div>
+        </div>
+      </div>
+      <div class="arrow" aria-hidden="true"><svg width="72" height="16" viewBox="0 0 72 16"><path d="M2 8H62" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M58 1L70 8L58 15Z" fill="currentColor"/></svg></div>
+      <div class="card rv">
+        <div class="lab"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#482E4C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>For leadership &amp; PMs</div>
+        <h3>Everything brought together, to understand:</h3>
+        <div class="rows">
+          <div class="row"><svg viewBox="0 0 160 56"><path d="M6 38H126" stroke="#D1D5DB" stroke-width="8" stroke-linecap="round"/><path d="M6 38H84" stroke="#482E4C" stroke-width="8" stroke-linecap="round"/><path d="M128 6V50" stroke="#111827" stroke-width="3"/><path d="M128 6L154 14L128 22Z" fill="#FF8F1F"/></svg>What's committed</div>
+          <div class="row"><svg viewBox="0 0 160 56"><rect y="18" width="160" height="20" rx="10" fill="#D1D5DB"/><rect y="18" width="92" height="20" rx="10" fill="#43946C"/><rect x="86" y="18" width="28" height="20" fill="#FF8F1F"/></svg>How it's progressing</div>
+          <div class="row"><svg viewBox="0 0 160 56"><path d="M4 52C40 50 56 10 92 6" fill="none" stroke="#FF8F1F" stroke-width="4" stroke-linecap="round"/><rect x="108" y="30" width="12" height="24" rx="2" fill="#879797"/><rect x="126" y="18" width="12" height="36" rx="2" fill="#879797"/><rect x="144" y="8" width="12" height="46" rx="2" fill="#482E4C"/></svg>Time and resource consumption</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= FOUR PARTS ======================= -->
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">How it fits together</span><h2>Four connected parts</h2></div>
+    <div class="parts">
+      <div class="part rv"><span class="n">01</span><h3>Baseline</h3><p>Project information, connected through Takeoff</p><a href="#baseline">See Baseline →</a></div>
+      <div class="part rv"><span class="n">02</span><h3>Planning</h3><p>Agreed targets and detailed Work Packages</p><a href="#planning">See Planning →</a></div>
+      <div class="part rv"><span class="n">03</span><h3>Tracking</h3><p>Work completed and resources used</p><a href="#tracking">See Tracking →</a></div>
+      <div class="part rv"><span class="n">04</span><h3>Insights</h3><p>Project timeline and resource consumed</p><a href="#insights">See Insights →</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= BASELINE ======================= -->
+<section id="baseline" style="background:#fff">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">01 · Baseline</span><h2>Bring in the project information</h2>
+      <p class="lead">Start with what the contractor already has. DBOT Track takes in the BOQ, the schedule and the rate analysis, with GFC drawings as they become available.</p></div>
+    <div class="inputs rv">
+      <div class="docs">
+        <div class="doc"><b>BOQ</b><span>Bill of Quantities</span></div>
+        <div class="doc"><b>Schedule</b><span>Work items and timeline</span></div>
+        <div class="doc"><b>Rate Analysis</b><span>Resources budgeted</span></div>
+        <div class="doc later"><b>GFC Drawings</b><span>As they become available</span></div>
+      </div>
+      <div class="to" aria-hidden="true"><svg width="56" height="16" viewBox="0 0 56 16"><path d="M2 8H46" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M42 2L54 8L42 14Z" fill="currentColor"/></svg></div>
+      <div class="basebox"><b>Project baseline</b><span>The starting point for everything that follows</span></div>
+    </div>
+
+    <div class="feature" style="margin-top:96px" data-walk="takeoff">
+      <div class="ftext rv">
+        <span class="eyebrow">Baseline · Quantity Surveyor</span>
+        <h2>Takeoff inside DBOT Track</h2>
+        <p class="lead">The QS validates the GFC drawing and measures the work in the system — so every quantity stays linked to its drawing, BOQ item, schedule and rate analysis.</p>
+        <ol class="steps">
+          <li><span class="k">1</span><div><b>Measure on the GFC</b><span>Draw the shape over the room</span></div></li>
+          <li><span class="k">2</span><div><b>Add a parameter</b><span>Wastage, with its quantity and unit</span></div></li>
+          <li><span class="k">3</span><div><b>Write the formula</b><span>Combine shapes and parameters</span></div></li>
+          <li><span class="k">4</span><div><b>Evaluate</b><span>The quantity is calculated</span></div></li>
+        </ol>
+      </div>
+      <div class="screen rv"><div class="bar"><i></i><i></i><i></i><em>Takeoff · 2BHK Floor Tiling</em></div><img src="assets/takeoff-poster.jpg" data-poster="assets/takeoff-poster.jpg" data-src="assets/takeoff.gif" alt="Takeoff: the Living / Dining room is traced on the GFC (24 m²), a Wastage parameter of 1.05 is added, the formula AR × Wastage is entered, and Evaluate gives 25.2 SqM" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PLANNING ======================= -->
+<section id="planning">
+  <div class="wrap">
+    <div class="feature flip" data-walk="lookahead">
+      <div class="ftext rv">
+        <span class="eyebrow">02 · Planning · Level 1</span>
+        <h2>Lookahead Planning</h2>
+        <p class="lead">Leadership and the project manager agree what the team will deliver over the coming period — checked line by line for readiness before it is committed.</p>
+        <ol class="steps">
+          <li><span class="k">1</span><div><b>Set the target</b><span>Leadership picks a date; the forecast gives the value</span></div></li>
+          <li><span class="k">2</span><div><b>Review readiness</b><span>The PM ticks each item or sets an ETA</span></div></li>
+          <li><span class="k">3</span><div><b>Approved Lookahead</b><span>Track delivery against the commitment</span></div></li>
+        </ol>
+      </div>
+      <div class="screen rv"><div class="bar"><i></i><i></i><i></i><em>Insights · Lookahead</em></div><img src="assets/lookahead-poster.jpg" data-poster="assets/lookahead-poster.jpg" data-src="assets/lookahead.gif" alt="Lookahead: setting the target date and preview, the PM review checklist, then the Approved Lookahead summary" loading="lazy"></div>
+    </div>
+
+    <div class="feature" data-walk="workpackage">
+      <div class="ftext rv">
+        <span class="eyebrow">Planning · Level 2 · Site Engineer</span>
+        <h2>Work Package Planning</h2>
+        <p class="lead">The site engineer turns the approved commitment into executable work: a zone on the drawing, the quantities and value it carries, and a day-by-day plan.</p>
+        <ol class="steps">
+          <li><span class="k">1</span><div><b>Select</b><span>A line item from the Approved Lookahead</span></div></li>
+          <li><span class="k">2</span><div><b>Mark the zone</b><span>Quantity and value come from the takeoff</span></div></li>
+          <li><span class="k">3</span><div><b>Plan the days</b><span>Sub-activities, resources, SE and QC</span></div></li>
+        </ol>
+      </div>
+      <div class="screen rv"><div class="bar"><i></i><i></i><i></i><em>Plan Work Package</em></div><img src="assets/work-package-poster.jpg" data-poster="assets/work-package-poster.jpg" data-src="assets/work-package.gif" alt="Work Package: Blockwork is selected, a zone is drawn over the living wing of the GFC giving 30 CUM and ₹3,00,000, then the day-wise plan is filled in" loading="lazy"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= TRACKING ======================= -->
+<section id="tracking" style="background:#fff">
+  <div class="wrap">
+    <div class="feature flip" data-walk="dpr">
+      <div class="ftext rv">
+        <span class="eyebrow">03 · Tracking · Site Engineer</span>
+        <h2>Daily Progress Report</h2>
+        <p class="lead">Progress is marked directly on the drawing, and the day's plan is confirmed against what actually happened — quantities and value are calculated, not re-entered.</p>
+        <ol class="steps">
+          <li><span class="k">1</span><div><b>Log progress</b><span>Tap a wall, choose how much is done</span></div></li>
+          <li><span class="k">2</span><div><b>Confirm the day's plan</b><span>Done, partly done or not done, with resources used</span></div></li>
+        </ol>
+      </div>
+      <div class="screen rv"><div class="bar"><i></i><i></i><i></i><em>Daily Progress Report · Apartment 102</em></div><img src="assets/dpr-poster.jpg" data-poster="assets/dpr-poster.jpg" data-src="assets/dpr.gif" alt="DPR: a partition wall is marked 50% done, adding 0.884 CUM and ₹8,838; then the day's sub-activities are confirmed" loading="lazy"></div>
+    </div>
+
+    <div style="margin-top:112px">
+      <div class="sec-head rv"><span class="eyebrow">Tracking · Automatic</span><h2>Compiled into four views</h2>
+        <p class="lead">Every submitted report is regrouped automatically — no collecting and re-keying daily sheets.</p></div>
+      <div class="views">
+        <div class="view rv"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg><b>Material consumption</b>
+          <svg class="ch" viewBox="0 0 400 72" preserveAspectRatio="none"><g fill="#879797"><rect x="0" y="32" width="36" height="40" rx="4"/><rect x="52" y="16" width="36" height="56" rx="4"/><rect x="104" y="40" width="36" height="32" rx="4"/><rect x="156" y="8" width="36" height="64" rx="4"/><rect x="208" y="24" width="36" height="48" rx="4"/><rect x="260" y="36" width="36" height="36" rx="4"/><rect x="312" y="20" width="36" height="52" rx="4"/><rect x="364" y="28" width="36" height="44" rx="4"/></g></svg></div>
+        <div class="view rv"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><b>Machinery utilisation</b>
+          <svg class="ch" viewBox="0 0 400 72" preserveAspectRatio="none"><rect y="8" width="400" height="16" rx="8" fill="#E5E7EB"/><rect y="8" width="260" height="16" rx="8" fill="#879797"/><rect y="48" width="400" height="16" rx="8" fill="#E5E7EB"/><rect y="48" width="170" height="16" rx="8" fill="#879797"/></svg></div>
+        <div class="view rv"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><b>Labour usage</b>
+          <svg class="ch" viewBox="0 0 400 72" preserveAspectRatio="none"><g fill="#879797"><rect x="0" y="36" width="36" height="36" rx="4"/><rect x="52" y="28" width="36" height="44" rx="4"/><rect x="104" y="40" width="36" height="32" rx="4"/><rect x="156" y="30" width="36" height="42" rx="4"/><rect x="208" y="34" width="36" height="38" rx="4"/><rect x="260" y="26" width="36" height="46" rx="4"/><rect x="312" y="38" width="36" height="34" rx="4"/><rect x="364" y="32" width="36" height="40" rx="4"/></g><g fill="#482E4C"><rect x="0" y="16" width="36" height="18" rx="4"/><rect x="52" y="6" width="36" height="20" rx="4"/><rect x="104" y="24" width="36" height="14" rx="4"/><rect x="156" y="12" width="36" height="16" rx="4"/><rect x="208" y="14" width="36" height="18" rx="4"/><rect x="260" y="8" width="36" height="16" rx="4"/><rect x="312" y="20" width="36" height="16" rx="4"/><rect x="364" y="14" width="36" height="16" rx="4"/></g></svg></div>
+        <div class="view rv"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><b>Progress against BOQ</b>
+          <svg class="ch" viewBox="0 0 400 72" preserveAspectRatio="none"><rect y="2" width="400" height="14" rx="7" fill="#E5E7EB"/><rect y="2" width="320" height="14" rx="7" fill="#43946C"/><rect y="29" width="400" height="14" rx="7" fill="#E5E7EB"/><rect y="29" width="210" height="14" rx="7" fill="#43946C"/><rect y="56" width="400" height="14" rx="7" fill="#E5E7EB"/><rect y="56" width="120" height="14" rx="7" fill="#43946C"/></svg></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= INSIGHTS ======================= -->
+<section id="insights">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">04 · Insights · Time</span><h2>What progress means for the timeline</h2>
+      <p class="lead">Review how work has progressed, see the forecast finish, and plan the next commitments — on one curve.</p></div>
+    <div class="chart rv">
+      <div class="legend"><span><i style="background:#879797"></i>Scheduled</span><span><i style="background:#482E4C"></i>Planned</span><span><i style="background:#FF8F1F"></i>Actual</span><span><i style="background:repeating-linear-gradient(90deg,#FF8F1F 0 7px,transparent 7px 11px)"></i>Forecast</span></div>
+      <svg viewBox="0 0 1664 540" font-family="Geist, Arial, sans-serif" role="img" aria-label="Illustrative S-curve: actual progress to today, then a forecast to the expected finish">
+        <rect x="40" y="0" width="860" height="420" fill="#F1F5F9"/><rect x="900" y="0" width="320" height="420" fill="#FDF1DE"/>
+        <path d="M40 420H1624" stroke="#E5E7EB" stroke-width="2"/>
+        <g fill="none" stroke-linecap="round"><path d="M40 420C520 410 700 50 1400 30" stroke="#879797" stroke-width="5"/><path d="M40 420C600 415 820 70 1500 30" stroke="#482E4C" stroke-width="5"/><path d="M40 420C500 418 740 300 900 240" stroke="#FF8F1F" stroke-width="7"/><path d="M900 240C1080 170 1300 60 1600 30" stroke="#FF8F1F" stroke-width="5" stroke-dasharray="14 10"/></g>
+        <path d="M900 0V420" stroke="#394150" stroke-width="3" stroke-dasharray="8 8"/>
+        <circle cx="900" cy="240" r="10" fill="#FF8F1F" stroke="#fff" stroke-width="4"/><circle cx="1600" cy="30" r="12" fill="#AF311F" stroke="#fff" stroke-width="4"/>
+        <rect x="840" y="14" width="120" height="38" rx="19" fill="#394150"/><text x="900" y="40" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">Today</text>
+        <text x="1644" y="90" text-anchor="end" font-size="24" font-weight="700" fill="#AF311F">Forecast finish</text>
+        <g text-anchor="middle"><text x="470" y="470" font-size="28" font-weight="700" fill="#111827">Lookback</text><text x="470" y="506" font-size="22" fill="#6B7280">How work has progressed</text>
+        <text x="1060" y="470" font-size="28" font-weight="700" fill="#111827">Lookahead</text><text x="1060" y="506" font-size="22" fill="#6B7280">Next commitments</text>
+        <text x="1452" y="470" font-size="28" font-weight="700" fill="#111827">Schedule forecast</text><text x="1452" y="506" font-size="22" fill="#6B7280">Expected completion</text></g>
+      </svg>
+    </div>
+
+    <div style="margin-top:112px">
+      <div class="sec-head rv"><span class="eyebrow">Insights · Cost</span><h2>Planned vs actual unit price</h2>
+        <p class="lead">For every BOQ line item: what each unit was budgeted to cost in resources, and what it is actually costing. Open a row to see the resources behind it.</p></div>
+      <div class="cost rv">
+        <table>
+          <thead>
+            <tr class="grp"><th></th><th class="pb" colspan="3">Planned</th><th class="ab" colspan="3">Actual</th><th></th></tr>
+            <tr><th>BOQ line item</th><th class="p">Qty</th><th class="p">Resources</th><th class="p">Unit price</th><th class="a">Qty done</th><th class="a">Consumed</th><th class="a">Unit price</th><th style="text-align:center">Change</th></tr>
+          </thead>
+          <tbody class="num">
+            <tr class="parent open" data-row="blk" aria-expanded="true"><td class="item"><b><span class="chev">›</span>Blockwork</b><span>per CUM</span></td><td class="p">100</td><td class="p">₹4,20,000</td><td class="p up">₹4,200</td><td class="a">35<div class="bar"><i style="width:35%"></i></div></td><td class="a">₹1,57,500</td><td class="a up">₹4,500</td><td style="text-align:center"><span class="pill up">▲ 7%</span></td></tr>
+            <tr class="res show" data-of="blk"><td><b>For 35 CUM done</b></td><td class="p" colspan="3" style="text-align:center;color:var(--muted)">Planned resource</td><td class="a" colspan="3" style="text-align:center;color:var(--muted)">Consumed so far</td><td></td></tr>
+            <tr class="res show" data-of="blk"><td>Mason <span class="t">· labour</span></td><td class="p" colspan="3" style="text-align:center">28 man-days</td><td class="a" colspan="3" style="text-align:center"><b>31 man-days</b></td><td style="text-align:center" class="tx-up">▲ 11%</td></tr>
+            <tr class="res show" data-of="blk"><td>Helper <span class="t">· labour</span></td><td class="p" colspan="3" style="text-align:center">42 man-days</td><td class="a" colspan="3" style="text-align:center"><b>45 man-days</b></td><td style="text-align:center" class="tx-up">▲ 7%</td></tr>
+            <tr class="res show" data-of="blk"><td>AAC blocks</td><td class="p" colspan="3" style="text-align:center">1,190 nos</td><td class="a" colspan="3" style="text-align:center"><b>1,225 nos</b></td><td style="text-align:center" class="tx-up">▲ 3%</td></tr>
+            <tr class="res show" data-of="blk"><td>Cement</td><td class="p" colspan="3" style="text-align:center">18 bags</td><td class="a" colspan="3" style="text-align:center"><b>17 bags</b></td><td style="text-align:center" class="tx-dn">▼ 6%</td></tr>
+            <tr><td class="item"><b>Plastering</b><span>per SqM</span></td><td class="p">1,240</td><td class="p">₹2,23,200</td><td class="p up">₹180</td><td class="a">610<div class="bar"><i style="width:49%"></i></div></td><td class="a">₹1,03,700</td><td class="a up">₹170</td><td style="text-align:center"><span class="pill dn">▼ 6%</span></td></tr>
+            <tr><td class="item"><b>Tile Flooring</b><span>per SqM</span></td><td class="p">2,400</td><td class="p">₹15,60,000</td><td class="p up">₹650</td><td class="a">611<div class="bar"><i style="width:25%"></i></div></td><td class="a">₹4,15,480</td><td class="a up">₹680</td><td style="text-align:center"><span class="pill up">▲ 5%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cost-note"><span><b style="color:var(--err)">▲ costlier</b> · <b style="color:var(--ok)">▼ cheaper</b> than planned · Unit price = resources ÷ quantity</span><span>Figures are illustrative.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= CLOSING BAND ======================= -->
+<section class="band">
+  <div class="wrap rv">
+    <span class="eyebrow" style="color:var(--orange)">DBOT Track</span>
+    <h2>Connecting project planning with what happens on site.</h2>
+    <div class="rule"></div>
+    <div class="flow" aria-label="Takeoff, then Lookahead, then Work Package, then DPR, then Insights"><span>Takeoff</span><i></i><span>Lookahead</span><i></i><span>Work Package</span><i></i><span>DPR</span><i></i><span>Insights</span></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <a class="btn btn-orange btn-lg" href="#contact">Talk to us</a>
+      <a class="btn btn-ghost-light btn-lg" href="https://app.dbottrack.com" target="_blank" rel="noopener" data-login>Log in</a>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= CONTACT ======================= -->
+<section id="contact" style="background:#fff">
+  <div class="wrap contact">
+    <div class="rv">
+      <span class="eyebrow">Contact</span>
+      <h2 style="margin:12px 0 16px">Talk to us</h2>
+      <p class="lead">See how DBOT Track would work on your projects. Tell us a little about your company and we'll get back to you.</p>
+      <div class="details">
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg><span><b>Email</b><a href="mailto:solomon@dbot.co.in">solomon@dbot.co.in</a></span></div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span><b>Phone</b><a href="tel:+916385129617">+91 6385129617</a></span></div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span><b>Office</b><p>3E, Emporio, 10th Avenue, Ashok Nagar, Chennai – 600083, India</p></span></div>
+      </div>
+    </div>
+
+    <!-- TODO(engineering): wire to the real enquiry endpoint (action/method), add spam protection -->
+    <form class="card rv" id="enquiry" action="[FORM_ENDPOINT]" method="post" novalidate>
+      <div class="fld"><label for="f-name">Name <i>*</i></label><input id="f-name" name="name" placeholder="Your name" required><span class="err">Enter your name</span></div>
+      <div class="fld"><label for="f-co">Company</label><input id="f-co" name="company" placeholder="Company name"></div>
+      <div class="fld"><label for="f-mail">Work email <i>*</i></label><input id="f-mail" name="email" type="email" placeholder="name@company.com" required><span class="err">Enter a valid email</span></div>
+      <div class="fld"><label for="f-ph">Phone</label><input id="f-ph" name="phone" type="tel" placeholder="+91"></div>
+      <div class="fld full"><label for="f-msg">How can we help?</label><textarea id="f-msg" name="message" placeholder="Number of projects, what you'd like to see…"></textarea></div>
+      <div class="sent" role="status">Thanks — we'll be in touch shortly.</div>
+      <div class="form-foot"><small>We'll only use this to reply to you.</small><button class="btn btn-sage" type="submit">Send message</button></div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap ft">
+    <img src="assets/logo.png" alt="dbot">
+    <nav aria-label="Footer"><a href="#product">Product</a><a href="#how">How it works</a><a href="#insights">Insights</a><a href="#contact">Contact</a><a href="/privacy-policy-and-terms/">Privacy &amp; Terms</a><a href="https://app.dbottrack.com" target="_blank" rel="noopener" data-login>Log in</a></nav>
+    <span>© 2026 DBOTICS TECHNOLOGY AND SOLUTION PRIVATE LIMITED</span>
+  </div>
+</footer>
+
+<script>
+/* ---------- mobile menu ---------- */
+(function(){var h=document.querySelector('header'),b=document.querySelector('.menu-btn');
+  b.addEventListener('click',function(){var o=h.classList.toggle('open');b.setAttribute('aria-expanded',o);});
+  h.querySelectorAll('nav a').forEach(function(a){a.addEventListener('click',function(){h.classList.remove('open');b.setAttribute('aria-expanded',false);});});
+})();
+
+/* ---------- reveal on scroll + active nav ---------- */
+(function(){
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+  document.querySelectorAll('.rv').forEach(function(el){io.observe(el);});
+  var links=[].slice.call(document.querySelectorAll('.hd nav a.lnk'));
+  var so=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(l){l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id||(e.target.id==='baseline'||e.target.id==='planning'||e.target.id==='tracking')&&l.getAttribute('href')==='#how');});}});},{rootMargin:'-45% 0px -50% 0px'});
+  ['product','how','baseline','planning','tracking','insights','contact'].forEach(function(id){var s=document.getElementById(id);if(s)so.observe(s);});
+})();
+
+/* ---------- walkthroughs: each GIF starts when it scrolls into view and its step list highlights in time.
+   Timings are the recorded frame durations [ms, step] — keep them in sync if a GIF is re-recorded. ---------- */
+(function(){
+  var T={
+    takeoff:[[1000,1],[380,1],[380,1],[380,1],[380,1],[1700,1],[600,2],[500,2],[1600,2],[600,3],[1600,3],[700,4],[3200,4]],
+    lookahead:[[1300,1],[500,1],[2600,1],[1300,2],[500,2],[2800,2],[3400,3]],
+    workpackage:[[1500,1],[500,1],[900,2],[350,2],[350,2],[350,2],[350,2],[2800,2],[800,3],[300,3],[300,3],[300,3],[300,3],[300,3],[300,3],[300,3],[300,3],[300,3],[2800,3]],
+    dpr:[[1400,1],[700,1],[600,1],[2600,1],[500,1],[500,2],[500,2],[3200,2]]
+  };
+  function plan(fr){var t=0,out=[];fr.forEach(function(f){out.push([t,f[1]]);t+=f[0];});return {marks:out,total:t};}
+  document.querySelectorAll('[data-walk]').forEach(function(sec){
+    var key=sec.getAttribute('data-walk'),p=plan(T[key]),img=sec.querySelector('img[data-src]'),lis=[].slice.call(sec.querySelectorAll('.steps li')),t0=0,raf=0,running=false;
+    function paint(step){lis.forEach(function(li,i){var n=i+1;li.classList.toggle('on',n===step);li.classList.toggle('done',step>0&&n<step);li.querySelector('.k').textContent=(step>0&&n<step)?'✓':n;});}
+    function tick(now){var e=(now-t0)%p.total,s=1;for(var i=0;i<p.marks.length;i++){if(e>=p.marks[i][0])s=p.marks[i][1];}paint(s);raf=requestAnimationFrame(tick);}
+    function start(){if(running)return;running=true;
+      img.onload=function(){t0=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(tick);};
+      img.src=img.getAttribute('data-src')+'?t='+Date.now();   /* fresh load restarts the GIF from step one */
+    }
+    function stop(){running=false;cancelAnimationFrame(raf);img.onload=null;img.src=img.getAttribute('data-poster');paint(0);}
+    paint(0);
+    new IntersectionObserver(function(es){es.forEach(function(e){e.isIntersecting?start():stop();});},{threshold:.35}).observe(sec);
+  });
+})();
+
+/* ---------- cost: open a BOQ row to see its resources ---------- */
+document.querySelectorAll('.cost tr.parent').forEach(function(tr){
+  tr.addEventListener('click',function(){var o=tr.classList.toggle('open');tr.setAttribute('aria-expanded',o);
+    document.querySelectorAll('.cost tr[data-of="'+tr.getAttribute('data-row')+'"]').forEach(function(r){r.classList.toggle('show',o);});});
+});
+
+/* ---------- contact form: client-side checks only (prototype) ---------- */
+document.getElementById('enquiry').addEventListener('submit',function(ev){
+  ev.preventDefault();var f=ev.target,ok=true;
+  [['f-name',function(v){return v.trim().length>0;}],['f-mail',function(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);}]].forEach(function(c){
+    var i=document.getElementById(c[0]),good=c[1](i.value);i.parentNode.classList.toggle('bad',!good);if(!good)ok=false;});
+  if(!ok)return;
+  /* TODO(engineering): POST the form to [FORM_ENDPOINT]; show the success state only on a 2xx response */
+  f.querySelector('.sent').style.display='block';f.querySelector('button[type=submit]').disabled=true;
+});
+</script>
+</body>
 </html>
